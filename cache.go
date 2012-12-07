@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"sync"
 	"time"
+	"strconv"
 )
 
 const (
@@ -39,6 +40,7 @@ func (e *cacheEntry) serve(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Expires", e.end.Format(http.TimeFormat))
+	w.Header().Set("Content-Length", strconv.FormatInt(int64(len(e.body)), 10))
 	if CheckETag(e.etag, false, w, r) || CheckLastModified(e.start, w, r) {
 		return
 	}
