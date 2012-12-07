@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"sync"
 	"time"
-	"strconv"
 )
 
 const (
@@ -16,10 +16,10 @@ const (
 
 type cacheEntry struct {
 	start, end time.Time
-	code int
-	etag string
-	headers http.Header
-	body []byte
+	code       int
+	etag       string
+	headers    http.Header
+	body       []byte
 }
 
 func (e *cacheEntry) cache(f func(http.ResponseWriter)) {
@@ -97,6 +97,10 @@ func (c *ResponseCache) Response(path string, d time.Duration, w http.ResponseWr
 			delete(c.cached, p)
 		}
 		visited++
+	}
+
+	if c.cached == nil {
+		c.cached = make(map[string]*cacheEntry)
 	}
 
 	c.cached[path] = &cacheEntry{
