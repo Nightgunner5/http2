@@ -32,6 +32,9 @@ func (e *cacheEntry) cache(f func(http.ResponseWriter)) {
 	hash := sha1.New()
 	hash.Write(e.body)
 	e.etag = fmt.Sprintf("%x", hash.Sum(nil))
+
+	e.headers.Set("Expires", e.end.Format(http.TimeFormat))
+	e.headers.Set("Content-Length", strconv.FormatInt(int64(len(e.body)), 10))
 }
 
 func (e *cacheEntry) serve(w http.ResponseWriter, r *http.Request) {
@@ -39,8 +42,6 @@ func (e *cacheEntry) serve(w http.ResponseWriter, r *http.Request) {
 		w.Header()[k] = v
 	}
 
-	w.Header().Set("Expires", e.end.Format(http.TimeFormat))
-	w.Header().Set("Content-Length", strconv.FormatInt(int64(len(e.body)), 10))
 	if CheckETag(e.etag, false, w, r) || CheckLastModified(e.start, w, r) {
 		return
 	}
